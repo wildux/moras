@@ -31,9 +31,22 @@ def send():
     x2 = int(request.form['x2'])
     y1 = int(request.form['y1'])
     y2 = int(request.form['y2'])
+    
+    height = int(request.form['height'])
+    width = int(request.form['width'])
 
     img = cv2.imread(imgPath)
-    img = img[x1:x2, y1:y2]
+    h,w,_ = img.shape
+    
+    scale_h = h/height
+    scale_w = w/width
+
+    x1 = int(x1*scale_w)
+    x2 = int(x2*scale_w)
+    y1 = int(y1*scale_h)
+    y2 = int(y2*scale_h)
+
+    img = img[y1:y2, x1:x2]
     imgRobot = cv2.imread(imgRobotPath)
 
     imgRes, x, y = vc.getResult(img, imgRobot, vc._SIFT)
