@@ -2,10 +2,11 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 import MORAS as vc
 from werkzeug import secure_filename
+from time import strftime
 import cv2
 app = Flask(__name__)
 
-imgPath = 'static/uni1.jpg'
+imgPath = 'static/scene.jpg'
 imgRobotPath = 'static/uni.jpg'
 app.config['UPLOAD_FOLDER'] = 'static/'
 app.config['ALLOWED_EXTENSIONS'] = set(['png', 'jpg', 'jpeg', 'gif'])
@@ -24,8 +25,7 @@ def update():
     return render_template('upload.html')
 
 @app.route('/send', methods=['POST'])
-def send():
-    #print("I got it!")
+def send():    
     #print(request.form['x1'],request.form['x2'],request.form['y1'],request.form['y2'])
     x1 = int(request.form['x1'])
     x2 = int(request.form['x2'])
@@ -51,23 +51,23 @@ def send():
 
     imgRes, x, y = vc.getResult(img, imgRobot, vc._SIFT)
 
-    cv2.imwrite("static/result.png", imgRes)
+    resultPath = "static/" + strftime("%Y-%m-%d-%H:%M") + ".png" 
+    cv2.imwrite(resultPath, imgRes)
 
-    return render_template('result.html', x=x, y=y)
+    return render_template('result.html', x=x, y=y, image=resultPath)
 
 # Route that will process the file upload
 @app.route('/upload', methods=['POST'])
-def upload():
-    # Get the name of the uploaded file
+def upload():    
     file = request.files['file']
-    # Check if the file is one of the allowed types/extensions
     if file and allowed_file(file.filename):
         # Make the filename safe, remove unsupported chars
-        filename = secure_filename(file.filename)
+        ext = filename.rsplit('.', 1)[1]
+        filename = "scene." + ext
+        #filename = secure_filename(file.filename)
         # Move the file form the temporal folder to the upload folder we setup
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        # Redirect the user to the uploaded_file route, which
-        # will basicaly show on the browser the uploaded file
+        # Redirect the user to the uploaded_file route, which will basicaly show on the browser the uploaded file
         return redirect(url_for('uploaded_file', filename=filename))
 
 # This route is expecting a parameter containing the name
